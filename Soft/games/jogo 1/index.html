@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SoftJack</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #0f5c3a, #062b1d);
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .hidden { display: none !important; }
+  .app {
+    width: 1000px;
+    max-width: 96%;
+    background: rgba(0,0,0,0.45);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+
+  h1 { text-align: center; margin: 0 0 20px; }
+  h3 { margin: 16px 0 8px; text-align: center; }
+
+  .profileBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    overflow: hidden;
+    border: 2px solid #444;
+    transition: transform 0.2s;
+  }
+
+  .avatar:hover { transform: scale(1.08); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .cards {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    min-height: 180px;
+  }
+
+  .card {
+    width: 110px;
+    height: 160px;
+    background: #f0f0f0;
+    color: #000;
+    border-radius: 14px;
+    font-size: 36px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transition: transform 0.15s;
+  }
+
+  .card:hover { transform: translateY(-6px); }
+
+  .card.back {
+    background: linear-gradient(135deg, #222, #111);
+    border: 3px solid #444;
+    color: transparent;
+    background-image: repeating-linear-gradient(45deg, #333 0, #333 10px, #222 10px, #222 20px);
+  }
+
+  .panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 4px;
+  }
+
+  button:hover { transform: translateY(-2px); }
+
+  .hit    { background: #27ae60; color: white; }
+  .stand  { background: #e67e22; color: white; }
+  .shop   { background: #8e44ad; color: white; }
+  .logout { background: #c0392b; color: white; }
+
+  .result {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    min-height: 40px;
+    margin: 16px 0;
+  }
+
+  .shopBox {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 16px;
+    margin-top: 20px;
+  }
+
+  .shopItem {
+    padding: 14px;
+    border-radius: 12px;
+    margin: 10px 0;
+    background: #2c2c2c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .common { border-left: 5px solid #7f8c8d; }
+  .rare   { border-left: 5px solid #3498db; }
+  .epic   { border-left: 5px solid #9b59b6; }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+
+  .modalContent {
+    background: #1e1e1e;
+    padding: 28px;
+    border-radius: 18px;
+    width: 420px;
+    max-width: 92%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .achievements {
+    margin: 24px 0;
+    text-align: left;
+  }
+
+  .achievement {
+    background: #2c2c2c;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95em;
+  }
+
+  .achievement.unlocked {
+    background: #3a4a3a;
+    border-left: 4px solid #27ae60;
+  }
+
+  .achievement.locked {
+    opacity: 0.6;
+    color: #aaa;
+  }
+
+  .emoji { font-size: 1.4em; }
+
+  input {
+    padding: 12px;
+    margin: 10px 0;
+    width: 220px;
+    max-width: 80%;
+    border-radius: 8px;
+    border: none;
+  }
+
+  .avatar-upload {
+    margin: 20px 0;
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>🃏 SOFTJACK</h1>
+
+  <div id="loginScreen">
+    <input id="userInput" placeholder="Username" autocomplete="username">
+    <input id="passInput" type="password" placeholder="Password" autocomplete="current-password">
+    <br>
+    <button onclick="login()">Login / Register</button>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+    <div class="panel">
+      <div class="profileBar" onclick="openProfile()">
+        <div id="avatar" class="avatar"></div>
+        <div id="profileText"></div>
+      </div>
+      <div>
+        <button class="shop" onclick="toggleShop()">Shop</button>
+        <button class="logout" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <h3>Dealer</h3>
+    <div id="dealerCards" class="cards"></div>
+    <div id="dealerTotal"></div>
+
+    <h3>You</h3>
+    <div id="playerCards" class="cards"></div>
+    <div id="playerTotal"></div>
+
+    <div style="text-align:center; margin:20px 0;">
+      <button class="hit" onclick="hit()">Hit</button>
+      <button class="stand" onclick="stand()">Stand</button>
+    </div>
+
+    <div id="result" class="result"></div>
+
+    <div id="shopBox" class="shopBox hidden">
+      <h3>Shop</h3>
+      <div class="shopItem common">
+        🍀 Lucky Ace (Common) — 15
+        <button onclick="buy('ace')">Buy</button>
+      </div>
+      <div class="shopItem rare">
+        😵 Weak Dealer (Rare) — 25
+        <button onclick="buy('dealer')">Buy</button>
+      </div>
+      <div class="shopItem epic">
+        🃏 Joker Card (Epic) — 50
+        <button onclick="buy('joker')">Buy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="profileModal" class="modal hidden">
+  <div class="modalContent">
+    <h2 id="modalName"></h2>
+
+    <div id="avatarPreview" class="avatar" style="margin:20px auto; width:100px;height:100px;font-size:48px;"></div>
+
+    <p id="modalStats"></p>
+
+    <div class="achievements">
+      <h3>Achievements</h3>
+      <div id="achievementsList"></div>
+    </div>
+
+    <div class="avatar-upload">
+      <label>Profile Picture (URL):</label><br>
+      <input type="text" id="avatarUrlInput" placeholder="https://..." style="width:90%; margin-top:8px;">
+      <button onclick="saveAvatar()" style="margin-top:12px;">Save Picture</button>
+    </div>
+
+    <button onclick="closeProfile()" style="margin-top:20px;">Close</button>
+  </div>
+</div>
+
+<script>
+// ================= CORE STATE =================
+const STORAGE_KEY = "softjack_users_v3";
+let users = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+let current = null;
+let deck = [], player = [], dealer = [];
+let hidden = true, gameOver = true;
+let winStreak = 0;
+
+// ================= ACHIEVEMENTS =================
+const ACHIEVEMENTS = [
+  {
+    id: "first_win",
+    name: "First Victory",
+    desc: "Win your first game",
+    icon: "🏆",
+    check: (data) => data.wins >= 1
+  },
+  {
+    id: "hot_streak",
+    name: "Hot Streak",
+    desc: "Win 5 games in a row",
+    icon: "🔥",
+    check: () => winStreak >= 5
+  },
+  {
+    id: "blackjack",
+    name: "Blackjack!",
+    desc: "Get exactly 21 with your initial two cards",
+    icon: "♠️21",
+    check: (data, lastGame) => lastGame?.playerInitial === 21 && lastGame?.won
+  },
+  {
+    id: "big_spender",
+    name: "Big Spender",
+    desc: "Spend 200 coins or more in the shop",
+    icon: "💰",
+    check: (data) => {
+      const spent = 15 * (data.items.ace || 0) +
+                    25 * (data.items.dealer || 0) +
+                    50 * (data.items.joker || 0);
+      return spent >= 200;
+    }
+  },
+  {
+    id: "high_roller",
+    name: "High Roller",
+    desc: "Reach 500 coins",
+    icon: "💎",
+    check: (data) => data.coins >= 500
+  },
+  {
+    id: "comeback",
+    name: "Comeback Kid",
+    desc: "Win after being at 0 coins",
+    icon: "🔄",
+    check: (data) => data.wins > 0 && data.coins > 0 && data.minCoinsReached <= 0
+  },
+  {
+    id: "perfect_game",
+    name: "Perfect Game",
+    desc: "Win without ever hitting (stand on first two cards)",
+    icon: "⭐",
+    check: (data, lastGame) => lastGame?.won && lastGame?.hits === 0
+  },
+  {
+    id: "marathon",
+    name: "Marathon Player",
+    desc: "Play 100 games",
+    icon: "🏃",
+    check: (data) => (data.wins + data.losses) >= 100
+  }
+];
+
+// ================= HELPERS =================
+const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+
+const normalizeUser = (u) => {
+  u.wins         ??= 0;
+  u.losses       ??= 0;
+  u.coins        ??= 50;
+  u.items        ??= {};
+  u.achievements ??= {};
+  u.avatar       ??= null;
+  u.minCoinsReached ??= 50;
+  u.lastGame     ??= null;
+};
+
+const isValidUrl = (str) => {
+  try { new URL(str); return true; } catch { return false; }
+};
+
+function unlockAchievement(id) {
+  const data = users[current];
+  if (!data.achievements[id]) {
+    data.achievements[id] = new Date().toISOString();
+    save();
+    setTimeout(() => {
+      alert(`Achievement Unlocked!\n${ACHIEVEMENTS.find(a => a.id === id)?.name || id}`);
+    }, 800);
+  }
+}
+
+// ================= LOGIN / REGISTER =================
+function login() {
+  const username = userInput.value.trim();
+  const password = passInput.value;
+
+  if (!username || !password) {
+    alert("Please enter username and password!");
+    return;
+  }
+
+  if (!users[username]) {
+    users[username] = { pass: password };
+  } else if (users[username].pass !== password) {
+    alert("Incorrect password!");
+    return;
+  }
+
+  normalizeUser(users[username]);
+  current = username;
+  save();
+
+  loginScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+
+  updateProfile();
+  startGame();
+}
+
+function logout() {
+  current = null;
+  gameScreen.classList.add("hidden");
+  loginScreen.classList.remove("hidden");
+  userInput.value = "";
+  passInput.value = "";
+}
+
+// ================= PROFILE =================
+function updateProfile() {
+  const data = users[current];
+  const totalGames = data.wins + data.losses;
+  const winRate = totalGames === 0 ? 0 : Math.round((data.wins / totalGames) * 100);
+
+  if (data.avatar && isValidUrl(data.avatar)) {
+    avatar.innerHTML = `<img src="${data.avatar}" alt="avatar" onerror="this.outerHTML='<span>${current[0].toUpperCase()}</span>'">`;
+  } else {
+    avatar.innerHTML = current[0].toUpperCase();
+  }
+
+  profileText.innerText = `${current} • ${winRate}% • 💰 ${data.coins}`;
+}
+
+function renderAchievements() {
+  const data = users[current];
+  const container = document.getElementById("achievementsList");
+  container.innerHTML = "";
+
+  ACHIEVEMENTS.forEach(ach => {
+    const div = document.createElement("div");
+    div.className = "achievement " + (data.achievements[ach.id] ? "unlocked" : "locked");
+    div.innerHTML = `
+      <span class="emoji">${ach.icon}</span>
+      <div>
+        <strong>${ach.name}</strong><br>
+        <small>${ach.desc}</small>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function openProfile() {
+  const data = users[current];
+  const total = data.wins + data.losses;
+  const rate = total === 0 ? 0 : Math.round((data.wins / total) * 100);
+
+  modalName.innerText = current;
+  modalStats.innerText =
+    `Wins: ${data.wins}\n` +
+    `Losses: ${data.losses}\n` +
+    `Win Rate: ${rate}%\n` +
+    `Coins: ${data.coins}`;
+
+  if (data.avatar && isValidUrl(data.avatar)) {
+    avatarPreview.innerHTML = `<img src="${data.avatar}" alt="preview" onerror="this.outerHTML='<span>${current[0].toUpperCase()}</span>'">`;
+  } else {
+    avatarPreview.innerHTML = current[0].toUpperCase();
+  }
+
+  avatarUrlInput.value = data.avatar || "";
+  renderAchievements();
+  profileModal.classList.remove("hidden");
+}
+
+function saveAvatar() {
+  const url = avatarUrlInput.value.trim();
+
+  if (!url) {
+    users[current].avatar = null;
+    alert("Picture removed!");
+  } else if (isValidUrl(url)) {
+    users[current].avatar = url;
+    alert("Picture updated! (may take a few seconds to appear)");
+  } else {
+    alert("Invalid URL!");
+    return;
+  }
+
+  save();
+  updateProfile();
+  openProfile();
+}
+
+const closeProfile = () => profileModal.classList.add("hidden");
+
+// ================= SHOP =================
+const toggleShop = () => shopBox.classList.toggle("hidden");
+
+function buy(item) {
+  const prices = { ace: 15, dealer: 25, joker: 50 };
+  const data = users[current];
+
+  if (data.coins < prices[item]) {
+    alert("Not enough coins!");
+    return;
+  }
+
+  data.coins -= prices[item];
+  data.items[item] = (data.items[item] || 0) + 1;
+  data.minCoinsReached = Math.min(data.minCoinsReached, data.coins);
+
+  save();
+  updateProfile();
+  alert(`Item purchased! (${item})`);
+}
+
+// ================= GAME =================
+function createDeck() {
+  const suits = ["♠","♥","♦","♣"];
+  const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+  deck = [];
+  for (const s of suits) for (const v of values) deck.push(v + s);
+  deck.sort(() => Math.random() - 0.5);
+}
+
+const draw = () => deck.pop() || "??";
+
+function cardValue(card) {
+  if (card === "🃏") return null;
+  const val = card.slice(0, -1);
+  if (val === "A") return 11;
+  if (["J","Q","K"].includes(val)) return 10;
+  return Number(val);
+}
+
+function calculateTotal(hand) {
+  let total = 0, aces = 0, jokers = 0;
+
+  for (const card of hand) {
+    if (card === "🃏") { jokers++; continue; }
+    const v = cardValue(card);
+    total += v;
+    if (v === 11) aces++;
+  }
+
+  while (total > 21 && aces > 0) { total -= 10; aces--; }
+
+  for (let i = 0; i < jokers; i++) {
+    let best = 11;
+    while (total + best > 21 && best > 1) best--;
+    total += best;
+  }
+
+  return total;
+}
+
+function renderCards(element, hand, hideFirst = false) {
+  element.innerHTML = "";
+  hand.forEach((card, i) => {
+    const div = document.createElement("div");
+    div.className = "card" + (hideFirst && i === 0 ? " back" : "");
+    div.textContent = (hideFirst && i === 0) ? "" : card;
+    element.appendChild(div);
+  });
+}
+
+function startGame() {
+  gameOver = false;
+  hidden = true;
+  createDeck();
+  player = [];
+  dealer = [];
+  result.innerText = "";
+
+  const data = users[current];
+
+  const gameRecord = { hits: 0, playerInitial: 0, won: false };
+
+  // Lucky Ace
+  if (data.items?.ace > 0) {
+    player.push("A♠");
+    data.items.ace--;
+  } else {
+    player.push(draw());
+  }
+
+  player.push(draw());
+  gameRecord.playerInitial = calculateTotal(player);
+
+  dealer.push(draw());
+  dealer.push(draw());
+
+  // Weak Dealer
+  if (data.items?.dealer > 0) {
+    dealer[0] = "2♣";
+    data.items.dealer--;
+  }
+
+  // Joker
+  if (data.items?.joker > 0) {
+    player.push("🃏");
+    data.items.joker--;
+  }
+
+  save();
+  updateGameDisplay();
+  users[current].lastGame = gameRecord;
+}
+
+function updateGameDisplay() {
+  renderCards(playerCards, player);
+  renderCards(dealerCards, dealer, hidden);
+
+  playerTotal.innerText = `Total: ${calculateTotal(player)}`;
+  dealerTotal.innerText = hidden ? "Total: ?" : `Total: ${calculateTotal(dealer)}`;
+}
+
+function hit() {
+  if (gameOver) return;
+  player.push(draw());
+  users[current].lastGame.hits++;
+  updateGameDisplay();
+
+  if (calculateTotal(player) > 21) endGame();
+}
+
+function stand() {
+  if (gameOver) return;
+  hidden = false;
+
+  while (calculateTotal(dealer) < 17) {
+    dealer.push(draw());
+  }
+
+  endGame();
+}
+
+function endGame() {
+  gameOver = true;
+  hidden = false;
+  updateGameDisplay();
+
+  const data = users[current];
+  const playerScore = calculateTotal(player);
+  const dealerScore = calculateTotal(dealer);
+  let message = "";
+
+  const won = (playerScore <= 21 && (dealerScore > 21 || playerScore > dealerScore));
+
+  data.lastGame.won = won;
+
+  if (playerScore > 21) {
+    message = "Bust! You Lost...";
+    data.losses++;
+    winStreak = 0;
+  }
+  else if (won) {
+    message = "You Win! +10 coins";
+    data.wins++;
+    data.coins += 10;
+    winStreak++;
+  }
+  else if (playerScore < dealerScore) {
+    message = "Dealer Wins...";
+    data.losses++;
+    winStreak = 0;
+  }
+  else {
+    message = "Push (Tie)";
+  }
+
+  // Update min coins after possible gain
+  data.minCoinsReached = Math.min(data.minCoinsReached, data.coins);
+
+  result.innerText = message;
+
+  // Check achievements
+  ACHIEVEMENTS.forEach(ach => {
+    if (ach.check(data, data.lastGame)) {
+      unlockAchievement(ach.id);
+    }
+  });
+
+  save();
+  updateProfile();
+
+  setTimeout(startGame, 1800);
+}
+
+// Init
+document.addEventListener("DOMContentLoaded", () => {
+  const usernames = Object.keys(users);
+  if (usernames.length === 1) {
+    current = usernames[0];
+    normalizeUser(users[current]);
+    loginScreen.classList.add("hidden");
+    gameScreen.classList.remove("hidden");
+    updateProfile();
+    startGame();
+  }
+});
+</script>
+</body>
+</html>
